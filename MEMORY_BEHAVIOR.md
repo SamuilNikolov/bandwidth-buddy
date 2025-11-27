@@ -1,17 +1,17 @@
 # Memory Behavior with Multiple Evaluations
 
-## What Happens with 100+ Evaluations?
+## Behavior with 100+ Evaluations
 
 ### Current Implementation
 
-Your system now uses **persistent chat sessions** - one chat per packet ID. Here's what happens as you evaluate more packets:
+The system uses **persistent chat sessions** - one chat per packet ID. The following describes behavior as more packets are evaluated:
 
 ### Memory Management
 
 1. **Chat Session Limit**: Maximum of **100 active chat sessions** (configurable via `MAX_CHAT_SESSIONS`)
 
 2. **LRU (Least Recently Used) Cleanup**: 
-   - When you hit 100 sessions, the oldest (least recently accessed) session is automatically removed
+   - When 100 sessions are reached, the oldest (least recently accessed) session is automatically removed
    - This prevents unlimited memory growth
    - New evaluations can still proceed
 
@@ -47,7 +47,7 @@ Each chat session stores:
 - ✅ Performance: **No noticeable impact**
 - ✅ New evaluations: Oldest session is removed (LRU)
 
-**Result:** System continues working normally. You might lose the chat history of the oldest evaluated packet, but new evaluations work fine.
+**Result:** System continues working normally. The chat history of the oldest evaluated packet may be lost, but new evaluations continue to function.
 
 #### Scenario 2: 200 Evaluations (Over the Limit)
 
@@ -57,7 +57,7 @@ Each chat session stores:
 - ✅ Memory usage stays at ~1-5 MB
 - ✅ Performance: **No noticeable impact**
 
-**Result:** You can evaluate as many packets as you want. The system automatically manages memory by keeping only the 100 most recently accessed sessions.
+**Result:** Unlimited packet evaluations are supported. The system automatically manages memory by keeping only the 100 most recently accessed sessions.
 
 #### Scenario 3: Memory Overload (Hypothetical - Won't Happen with Current Limits)
 
@@ -99,14 +99,14 @@ The navbar shows real-time memory stats:
 
 ### Best Practices
 
-1. **Monitor the Memory Stats**: Keep an eye on the navbar stats
-2. **Don't Worry About 100 Evaluations**: The system handles it automatically
-3. **Old Sessions Auto-Expire**: Inactive chats are cleaned up after 1 hour
-4. **LRU Protects You**: Most recently used sessions are preserved
+1. **Monitor Memory Stats**: Track memory usage via the navbar statistics
+2. **100+ Evaluations**: The system handles large numbers of evaluations automatically
+3. **Session Expiration**: Inactive chats are cleaned up after 1 hour
+4. **LRU Protection**: Most recently used sessions are preserved
 
 ### Configuration
 
-You can adjust limits in `server.js`:
+Limits can be adjusted in `server.js`:
 
 ```javascript
 const MAX_CHAT_SESSIONS = 100;  // Increase if you have more RAM
@@ -121,6 +121,6 @@ const CHAT_SESSION_TTL = 3600000; // 1 hour - decrease for faster cleanup
 - ✅ **Memory**: Stays under control (1-5 MB typically)
 - ✅ **Automatic Cleanup**: Old sessions removed automatically
 
-**The system is designed to handle many evaluations gracefully!**
+**The system is designed to handle many evaluations gracefully.**
 
 

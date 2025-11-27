@@ -4,7 +4,7 @@
 
 ### Initial Evaluation (First Message)
 
-When you evaluate a packet for the first time:
+When a packet is evaluated for the first time:
 
 1. **New chat session is created** for that packet ID
 2. **System prompt is sent ONCE** - the evaluation system prompt (`SYSTEM_PROMPT`)
@@ -17,7 +17,7 @@ When you evaluate a packet for the first time:
 
 ### Follow-up Questions (Chat Mode)
 
-When you ask a follow-up question:
+When a follow-up question is asked:
 
 1. **System prompt is switched** to chat mode (`CHAT_SYSTEM_PROMPT`)
    - This happens automatically on the first follow-up question
@@ -42,21 +42,21 @@ Session Messages:
 ...
 ```
 
-**Key Point:** The system prompt is NOT sent with every request. It's sent once when the session is created, then maintained in the session's message history. When you send a follow-up question, the entire message history (including the system prompt) is sent to Ollama, so the AI maintains context and behavior.
+**Key Point:** The system prompt is NOT sent with every request. It is sent once when the session is created, then maintained in the session's message history. When a follow-up question is sent, the entire message history (including the system prompt) is sent to Ollama, so the model maintains context and behavior.
 
 ### Current Behavior
 
 ✅ **System prompt sent once** - when session is created or switched to chat mode  
 ✅ **Persistent instructions** - system prompt stays in session history  
-✅ **AI remembers behavior** - because system prompt is in every request's context  
+✅ **Model maintains behavior** - because system prompt is in every request's context  
 ✅ **Cybersecurity-only restriction** - enforced via chat system prompt  
 
 ### What This Means
 
-- The AI will remember it should only answer cybersecurity questions
+- The model maintains the restriction to only answer cybersecurity questions
 - The restriction is persistent because the system prompt is in the session
-- You don't need to send instructions every time - they're already in the context
-- The AI maintains its role and restrictions throughout the conversation
+- Instructions do not need to be sent every time - they are already in the context
+- The model maintains its role and restrictions throughout the conversation
 
 ## Memory Explanation
 
@@ -70,7 +70,7 @@ The "Context Memory" shown in the navbar represents:
 - AI responses
 - Evaluation results
 
-This is the **conversation context** that gets sent to the AI model with each request. The AI uses this context to:
+This is the **conversation context** that gets sent to the model with each request. The model uses this context to:
 - Remember previous questions and answers
 - Maintain consistent behavior (from system prompt)
 - Provide coherent, contextual responses
@@ -79,7 +79,7 @@ This is the **conversation context** that gets sent to the AI model with each re
 
 1. **Sessions**: Number of active chat sessions (one per evaluated packet)
 2. **Context**: Total memory used by all chat session histories (KB/MB)
-3. **Heap**: Node.js process memory (your server's RAM usage)
+3. **Heap**: Node.js process memory (server RAM usage)
 4. **Model VRAM**: GPU memory used by the AI model (if using GPU)
 5. **RAM**: System-wide RAM usage (total system memory)
 
@@ -90,6 +90,6 @@ This is the **conversation context** that gets sent to the AI model with each re
 - **No limit on sessions** - only time-based expiration (1 hour inactivity)
 - **Automatic cleanup** - old sessions expire and free memory
 
-The context memory is what allows the AI to have a conversation with you about each packet - it's the "memory" of what you've discussed.
+The context memory enables conversation about each packet - it stores the history of what has been discussed.
 
 

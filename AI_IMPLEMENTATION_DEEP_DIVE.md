@@ -76,7 +76,7 @@
 ### What is Ollama?
 
 Ollama is a **local LLM runtime** that:
-- Runs models on your local machine (CPU/GPU)
+- Runs models on the local machine (CPU/GPU)
 - Provides a REST API for model interaction
 - Manages model loading, context, and inference
 - Supports multiple model formats (GGUF, etc.)
@@ -135,7 +135,7 @@ messages = [
 
 ```
 ┌─────────────────┐
-│  Your App       │
+│  Application    │
 │  (server.js)    │
 └────────┬────────┘
          │
@@ -171,7 +171,7 @@ messages = [
          │
          ▼
 ┌─────────────────┐
-│  Your App       │
+│  Application    │
 │  (server.js)    │
 └─────────────────┘
 ```
@@ -1069,7 +1069,7 @@ CONFIDENCE: 85"
 
 **Why prompt engineering matters for fine-tuning**:
 
-1. **Defines Target Behavior**: Good prompts show what you want
+1. **Defines Target Behavior**: Good prompts define desired output format
 2. **Creates Training Data**: Prompt + good responses = training examples
 3. **Identifies Gaps**: Where prompts fail, fine-tuning can help
 4. **Establishes Patterns**: Consistent prompt structure = consistent training

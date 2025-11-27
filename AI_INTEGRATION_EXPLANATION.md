@@ -2,7 +2,7 @@
 
 ## Current Implementation Overview
 
-Your system uses **Ollama** (a local LLM server) via HTTP API calls. Here's how everything works:
+The system uses **Ollama** (a local LLM server) via HTTP API calls. The following describes how the system works:
 
 ---
 
@@ -10,11 +10,11 @@ Your system uses **Ollama** (a local LLM server) via HTTP API calls. Here's how 
 
 ### How It Works Currently
 
-**The model is NOT loaded by your Node.js application.** Instead:
+**The model is NOT loaded by the Node.js application.** Instead:
 
 1. **Ollama runs as a separate service** (typically started with `ollama serve`)
 2. **Ollama loads the model** (`gemma3:4b`) when it starts or on first use
-3. **Your Node.js app makes HTTP requests** to Ollama's API endpoint (`http://127.0.0.1:11434/api/chat`)
+3. **The Node.js application makes HTTP requests** to Ollama's API endpoint (`http://127.0.0.1:11434/api/chat`)
 4. **Each request is stateless** - you send a complete message array, Ollama processes it, and returns a response
 
 ### Model Lifecycle
@@ -27,12 +27,12 @@ Your system uses **Ollama** (a local LLM server) via HTTP API calls. Here's how 
          │ HTTP POST /api/chat
          │
 ┌────────▼────────┐
-│  Your Node.js   │  ← Just sends HTTP requests
+│  Node.js App    │  ← Sends HTTP requests
 │  Application    │
 └─────────────────┘
 ```
 
-**Key Point:** The model stays loaded in Ollama's memory. Your app doesn't manage model loading - it just sends HTTP requests.
+**Key Point:** The model stays loaded in Ollama's memory. The application does not manage model loading - it only sends HTTP requests.
 
 ---
 
@@ -134,13 +134,13 @@ In the chat API format:
 1. System prompt (instructions on how to respond)
 2. User message (the packet data + context)
 
-**Why this is necessary:** Since each evaluation is a new chat, the system prompt must be included every time to tell the AI how to format its response.
+**Why this is necessary:** Since each evaluation is a new chat, the system prompt must be included every time to instruct the model on response format.
 
 ---
 
 ## 5. Design Options: Separate Chats Per Evaluation
 
-### Current Design: Stateless (What You Have Now)
+### Current Design: Stateless
 
 **Pros:**
 - ✅ Simple - no state management
@@ -156,7 +156,7 @@ In the chat API format:
 
 ### Alternative Design: Persistent Chat Sessions
 
-If you wanted **separate chat sessions** (one per packet evaluation, but maintained over time):
+For **separate chat sessions** (one per packet evaluation, maintained over time):
 
 #### Option A: One Chat Per Packet ID
 
@@ -208,7 +208,7 @@ async function evaluatePacketWithContext(targetPacket, contextPackets) {
 
 #### Option B: One Chat Per Evaluation (Current, but with explicit session IDs)
 
-This is essentially what you have now, but you could add session tracking:
+This matches the current implementation, with optional session tracking:
 
 ```javascript
 let sessionCounter = 0;
@@ -237,7 +237,7 @@ This doesn't change functionality, just adds tracking.
 ### Current Design (Stateless)
 
 **Memory:**
-- Your Node.js app: Minimal (just request/response data)
+- Node.js application: Minimal (just request/response data)
 - Ollama: Model stays in memory (shared across all requests)
 - **Total overhead per evaluation:** ~few KB (just the HTTP request/response)
 
@@ -254,7 +254,7 @@ This doesn't change functionality, just adds tracking.
 ### Alternative Design (Persistent Chats)
 
 **Memory:**
-- Your Node.js app: Grows with number of unique packets evaluated
+- Node.js application: Grows with number of unique packets evaluated
 - Each chat session: ~1-10 KB (depending on message history)
 - **Risk:** Memory leak if sessions never cleaned up
 
@@ -274,16 +274,16 @@ This doesn't change functionality, just adds tracking.
 
 ### How Ollama Works
 
-**Important:** Ollama doesn't maintain "active" vs "standby" chats. Here's what actually happens:
+**Important:** Ollama does not maintain "active" vs "standby" chats. The following describes actual behavior:
 
 1. **Model is loaded once** in Ollama's memory (stays loaded)
 2. **Each HTTP request is independent** - you send complete message history
 3. **Ollama processes the request** and returns a response
 4. **No state is maintained** on Ollama's side between requests
 
-### If You Implemented Persistent Chats
+### Persistent Chat Implementation
 
-If you stored chat sessions in your Node.js app:
+If chat sessions are stored in the Node.js application:
 
 ```
 ┌─────────────────────────────────┐
@@ -303,7 +303,7 @@ If you stored chat sessions in your Node.js app:
 
 ### Memory Management Strategies
 
-If you want persistent chats but limit memory:
+For persistent chats with memory limits:
 
 ```javascript
 // Option 1: LRU Cache (keep only N most recent)
@@ -338,9 +338,9 @@ setInterval(cleanupOldSessions, 60000); // Clean every minute
 
 ## 8. Recommendations
 
-### For Your Use Case (Packet Analysis)
+### Use Case: Packet Analysis
 
-**Keep the current stateless design** because:
+**The stateless design is recommended** because:
 
 1. **Packets are typically evaluated once** - no need for conversation history
 2. **Each packet is independent** - previous evaluations don't inform current ones
@@ -359,10 +359,10 @@ Consider persistent chats if:
 
 ## 9. Technical Deep Dive: How Ollama Processes Requests
 
-### What Happens When You Call `/api/chat`
+### Request Processing for `/api/chat`
 
 ```
-1. Your Node.js app sends HTTP POST:
+1. The Node.js application sends HTTP POST:
    {
      "model": "gemma3:4b",
      "messages": [
@@ -377,7 +377,7 @@ Consider persistent chats if:
    - Generates response based on all messages
    - Returns response
 
-3. Your app receives:
+3. The application receives:
    {
      "message": {
        "role": "assistant",
@@ -394,7 +394,7 @@ Consider persistent chats if:
 
 ## 10. Example: How to Implement Separate Chats (If Needed)
 
-Here's a complete implementation if you want separate chat sessions:
+Complete implementation for separate chat sessions:
 
 ```javascript
 // Chat session manager
@@ -508,7 +508,7 @@ async function evaluatePacketWithContext(targetPacket, contextPackets) {
 - No memory leaks
 - Easy to parallelize
 
-**If you want separate chats:**
+**For separate chats:**
 - Implement session management in Node.js
 - Store message history in memory (with cleanup)
 - System prompt only sent once per session

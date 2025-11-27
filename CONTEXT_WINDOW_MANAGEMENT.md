@@ -2,19 +2,19 @@
 
 ## The Problem
 
-Yes, you're absolutely right! If a conversation gets too long, the model's context window can be exceeded, and older messages (including the system prompt) might get truncated or lost.
+If a conversation exceeds the model's context window, older messages (including the system prompt) may be truncated or lost.
 
 **Context Window Limits:**
 - Most models have a fixed context window (e.g., 4K, 8K, 32K tokens)
 - `gemma3:4b` typically has an 8K token context window
-- When you exceed this limit, the model may:
+- When the limit is exceeded, the model may:
   - Truncate older messages
   - Lose the system prompt
   - Forget earlier instructions
 
 ## The Solution
 
-I've implemented **automatic context window management** that:
+The system implements **automatic context window management** that:
 
 ### 1. Always Preserves System Prompt
 
@@ -46,7 +46,7 @@ Messages:
 7. [assistant] - 350 tokens (answer 2)
 ... (many more messages)
 
-Total: 8000 tokens (exceeds limit!)
+Total: 8000 tokens (exceeds limit)
 
 After trimming:
 1. [system] - 200 tokens (KEPT)
@@ -88,7 +88,7 @@ The system estimates tokens using:
 
 ## Configuration
 
-You can adjust the context limit in `server.js`:
+The context limit can be adjusted in `server.js`:
 
 ```javascript
 this.maxContextTokens = 6000; // Adjust based on your model
@@ -99,13 +99,13 @@ For models with larger context windows (e.g., 32K), increase `maxContextTokens` 
 
 ## Summary
 
-**Your concern was valid** - context window limits can cause the system prompt to be lost. The solution ensures:
+Context window limits can cause the system prompt to be lost. The implementation ensures:
 
 1. System prompt is **always preserved** (never removed)
 2. Messages are **automatically trimmed** when approaching limits
 3. **Recent conversations** are prioritized over old ones
-4. The AI **maintains its behavior** because the system prompt stays in context
+4. The model **maintains its behavior** because the system prompt stays in context
 
-The system prompt will **never be forgotten** - it's protected and always included in every request!
+The system prompt is **protected and always included** in every request.
 
 
