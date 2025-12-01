@@ -790,8 +790,33 @@ class PacketAnalyzer {
             const detailsEl = packetEl.querySelector('.packet-details');
             if (detailsEl) {
                 detailsEl.classList.add('expanded');
-                detailsEl.innerHTML = this.renderPacketDetails(packet) + 
-                    '<div class="evaluation-result"><h4>AI Evaluation</h4><div class="evaluation-content evaluation-loading"><span class="loading-spinner"></span>AI is analyzing packet... This may take a few moments.</div></div>';
+                const loadingHtml = `
+                    <div class="evaluation-result">
+                        <h4>AI Evaluation</h4>
+                        <div class="evaluation-content evaluation-loading">
+                            <div class="evaluation-loading-container">
+                                <div class="evaluation-logo-wrapper">
+                                    <div class="evaluation-scan-line"></div>
+                                    <div class="evaluation-particles">
+                                        <div class="evaluation-particle"></div>
+                                        <div class="evaluation-particle"></div>
+                                        <div class="evaluation-particle"></div>
+                                        <div class="evaluation-particle"></div>
+                                    </div>
+                                    <img src="./logo.png" alt="Bandwidth Buddy" class="evaluation-logo">
+                                </div>
+                                <div class="evaluation-status">
+                                    <span class="evaluation-status-dot"></span>
+                                    <span class="evaluation-status-text" id="evalStatusText-${packetId}">Analyzing packet structure...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                detailsEl.innerHTML = this.renderPacketDetails(packet) + loadingHtml;
+                
+                // Animate status text
+                this.animateEvaluationStatus(packetId);
             }
         }
 
@@ -813,6 +838,12 @@ class PacketAnalyzer {
             const data = await response.json();
             
             if (data.ok) {
+                // Clear status animation interval
+                if (this.evaluationStatusIntervals && this.evaluationStatusIntervals.has(packetId)) {
+                    clearInterval(this.evaluationStatusIntervals.get(packetId));
+                    this.evaluationStatusIntervals.delete(packetId);
+                }
+                
                 // Parse and store evaluation
                 packet.evaluation = data.evaluation;
                 const parsed = this.parseEvaluation(data.evaluation);
@@ -868,6 +899,13 @@ class PacketAnalyzer {
             }
         } catch (err) {
             console.error('Error evaluating packet:', err);
+            
+            // Clear status animation interval on error
+            if (this.evaluationStatusIntervals && this.evaluationStatusIntervals.has(packetId)) {
+                clearInterval(this.evaluationStatusIntervals.get(packetId));
+                this.evaluationStatusIntervals.delete(packetId);
+            }
+            
             if (packetEl) {
                 const detailsEl = packetEl.querySelector('.packet-details');
                 if (detailsEl) {
@@ -876,6 +914,39 @@ class PacketAnalyzer {
                 }
             }
         }
+    }
+
+    animateEvaluationStatus(packetId) {
+        const statusTextEl = document.getElementById(`evalStatusText-${packetId}`);
+        if (!statusTextEl) return;
+
+        const statusMessages = [
+            'Analyzing packet structure...',
+            'Examining network patterns...',
+            'Assessing security implications...',
+            'Processing with AI model...',
+            'Generating threat analysis...',
+            'Finalizing evaluation...'
+        ];
+
+        let currentIndex = 0;
+        const interval = setInterval(() => {
+            if (!statusTextEl.parentElement || !document.contains(statusTextEl)) {
+                clearInterval(interval);
+                return;
+            }
+            
+            statusTextEl.style.opacity = '0';
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % statusMessages.length;
+                statusTextEl.textContent = statusMessages[currentIndex];
+                statusTextEl.style.opacity = '1';
+            }, 200);
+        }, 2500);
+
+        // Store interval ID so we can clear it if needed
+        this.evaluationStatusIntervals = this.evaluationStatusIntervals || new Map();
+        this.evaluationStatusIntervals.set(packetId, interval);
     }
 
     updateEvaluatedPacketsList() {
@@ -1158,8 +1229,40 @@ class PacketAnalyzer {
     }
 }
 
+// Loading screen animation handler
+function handleLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (!loadingScreen) return;
+
+    const minDisplayTime = 2500; // Minimum 2.5 seconds
+    const startTime = Date.now();
+
+    function hideLoadingScreen() {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, minDisplayTime - elapsed);
+        
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                if (loadingScreen.parentNode) {
+                    loadingScreen.parentNode.removeChild(loadingScreen);
+                }
+            }, 800); // Match CSS transition duration
+        }, remaining);
+    }
+
+    // Hide when page is fully loaded
+    if (document.readyState === 'complete') {
+        hideLoadingScreen();
+    } else {
+        window.addEventListener('load', hideLoadingScreen);
+    }
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    handleLoadingScreen();
     const analyzer = new PacketAnalyzer();
     // Make analyzer globally accessible for onclick handlers
     window.packetAnalyzer = analyzer;
